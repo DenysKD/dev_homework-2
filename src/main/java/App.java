@@ -1,90 +1,138 @@
+import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class App {
 
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
-        byte input;
-        byte rand;
-        byte i;
         boolean boxAvailable = false;
         byte winner = 0;
-        char box[] = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-        System.out.println("Enter box number to select. Enjoy!\n");
+        char[] box = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+        Logger logger = Logger.getLogger("Class App");
+        logger.info("Enter box number to select. Enjoy!\n");
 
-        boolean boxEmpty = false;
         while (true) {
-            System.out.println("\n\n " + box[0] + " | " + box[1] + " | " + box[2] + " ");
-            System.out.println("-----------");
-            System.out.println(" " + box[3] + " | " + box[4] + " | " + box[5] + " ");
-            System.out.println("-----------");
-            System.out.println(" " + box[6] + " | " + box[7] + " | " + box[8] + " \n");
-            if(!boxEmpty){
-                for(i = 0; i < 9; i++)
-                    box[i] = ' ';
-                boxEmpty = true;
-            }
+            showBoard(logger, box);
 
-            if(winner == 1){
-                System.out.println("You won the game!\nCreated by Shreyas Saha. Thanks for playing!");
-                break;
-            } else if(winner == 2){
-                System.out.println("You lost the game!\nCreated by Shreyas Saha. Thanks for playing!");
-                break;
-            } else if(winner == 3){
-                System.out.println("It's a draw!\nCreated by Shreyas Saha. Thanks for playing!");
+            if (winner > 0 && winner < 4) {
+                winCheck(logger, winner);
                 break;
             }
 
-            while (true) {
-                input = scan.nextByte();
-                if (input > 0 && input < 10) {
-                    if (box[input - 1] == 'X' || box[input - 1] == 'O')
-                        System.out.println("That one is already in use. Enter another.");
-                    else {
-                        box[input - 1] = 'X';
-                        break;
+            playerMove(scan, logger, box);
+
+            if (isWin(box, 'X')) {
+                winner = 1;
+            } else {
+                boxAvailable = isHaveSpace(box);
+
+                if (!boxAvailable) {
+                    winner = 3;
+                } else {
+
+                    botMove(box);
+
+                    if (isWin(box, 'O')) {
+                        winner = 2;
                     }
                 }
-                else
-                    System.out.println("Invalid input. Enter again.");
-            }
-
-            if((box[0]=='X' && box[1]=='X' && box[2]=='X') || (box[3]=='X' && box[4]=='X' && box[5]=='X') || (box[6]=='X' && box[7]=='X' && box[8]=='X') ||
-               (box[0]=='X' && box[3]=='X' && box[6]=='X') || (box[1]=='X' && box[4]=='X' && box[7]=='X') || (box[2]=='X' && box[5]=='X' && box[8]=='X') ||
-               (box[0]=='X' && box[4]=='X' && box[8]=='X') || (box[2]=='X' && box[4]=='X' && box[6]=='X')){
-                   winner = 1;
-                   continue;
-            }
-
-            boxAvailable = false;
-            for(i=0; i<9; i++){
-                if(box[i] != 'X' && box[i] != 'O'){
-                    boxAvailable = true;
-                    break;
-                }
-            }
-
-            if(boxAvailable == false){
-                winner = 3;
-                continue;
-            }
-
-            while (true) {
-                rand = (byte) (Math.random() * (9 - 1 + 1) + 1);
-                if (box[rand - 1] != 'X' && box[rand - 1] != 'O') {
-                    box[rand - 1] = 'O';
-                    break;
-                }
-            }
-
-            if((box[0]=='O' && box[1]=='O' && box[2]=='O') || (box[3]=='O' && box[4]=='O' && box[5]=='O') || (box[6]=='O' && box[7]=='O' && box[8]=='O') ||
-               (box[0]=='O' && box[3]=='O' && box[6]=='O') || (box[1]=='O' && box[4]=='O' && box[7]=='O') || (box[2]=='O' && box[5]=='O' && box[8]=='O') ||
-               (box[0]=='O' && box[4]=='O' && box[8]=='O') || (box[2]=='O' && box[4]=='O' && box[6]=='O')){
-                winner = 2;
-                continue;
             }
         }
 
     }
+
+    private static boolean isWin(char[] box, char symbol) {
+        int[][] paterns = {
+                {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+                {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+                {0, 4, 8}, {2, 4, 6}};
+
+        for (int[] patern : paterns) {
+            if (box[patern[0]] == symbol && box[patern[1]] == symbol && box[patern[2]] == symbol)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void playerMove(Scanner scanner, Logger logger, char[] box) {
+        byte input;
+
+        while (true) {
+            if (scanner.hasNextByte()) {
+                input = scanner.nextByte();
+                if (input > 0 && input < 10) {
+                    if (box[input - 1] != 'X' && box[input - 1] != 'O') {
+                        box[input - 1] = 'X';
+                        break;
+                    } else {
+                        logger.info("That one is already in use. Enter another.");
+                    }
+                } else
+                    logger.info("Invalid input. Enter again.");
+
+            } else {
+                logger.info("Invalid value");
+                scanner.next();
+            }
+        }
+    }
+
+    private static void botMove(char[] box) {
+        if (!isHaveSpace(box)) {
+            return;
+        }
+
+        Random random = new Random();
+
+        while (true) {
+            int rand = random.nextInt(9);
+            if (box[rand] != 'X' && box[rand] != 'O') {
+                box[rand] = 'O';
+                break;
+            }
+        }
+    }
+
+
+    private static void winCheck(Logger logger, byte winner) {
+        if (winner == 1) {
+            logger.info("You won the game!\nCreated by Shreyas Saha. Thanks for playing!");
+        } else if (winner == 2) {
+            logger.info("You lost the game!\nCreated by Shreyas Saha. Thanks for playing!");
+        } else if (winner == 3) {
+            logger.info("It's a draw!\nCreated by Shreyas Saha. Thanks for playing!");
+        }
+    }
+
+    private static void showBoard(Logger logger, char[] box) {
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, """
+                            
+                            {0} | {1} | {2}
+                            -----------
+                            {3} | {4} | {5}
+                            -----------
+                            {6} | {7} | {8}
+                            """,
+                    new Object[]{
+                            box[0], box[1], box[2],
+                            box[3], box[4], box[5],
+                            box[6], box[7], box[8]
+                    });
+        }
+    }
+
+    private static boolean isHaveSpace(char[] box) {
+        for (byte i = 0; i < 9; i++) {
+            if (box[i] != 'X' && box[i] != 'O') {
+                return true;
+            }
+        }
+        return false;
+    }
 }
+
+
