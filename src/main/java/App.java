@@ -5,8 +5,15 @@ import java.util.logging.Logger;
 
 public class App {
 
+    private static final Random random = new Random();
+    private static final Scanner scan = new Scanner(System.in);
+    private static final int[][] paterns = {
+            {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+            {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+            {0, 4, 8}, {2, 4, 6}};
+
     public static void main(String[] args) {
-        Scanner scan = new Scanner(System.in);
+
         boolean boxAvailable = false;
         byte winner = 0;
         char[] box = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -26,7 +33,7 @@ public class App {
             if (isWin(box, 'X')) {
                 winner = 1;
             } else {
-                boxAvailable = isHaveSpace(box);
+                boxAvailable = doesHaveSpace(box);
 
                 if (!boxAvailable) {
                     winner = 3;
@@ -40,20 +47,13 @@ public class App {
                 }
             }
         }
-
     }
 
     private static boolean isWin(char[] box, char symbol) {
-        int[][] paterns = {
-                {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
-                {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
-                {0, 4, 8}, {2, 4, 6}};
-
         for (int[] patern : paterns) {
             if (box[patern[0]] == symbol && box[patern[1]] == symbol && box[patern[2]] == symbol)
                 return true;
         }
-
         return false;
     }
 
@@ -81,11 +81,9 @@ public class App {
     }
 
     private static void botMove(char[] box) {
-        if (!isHaveSpace(box)) {
+        if (!doesHaveSpace(box)) {
             return;
         }
-
-        Random random = new Random();
 
         while (true) {
             int rand = random.nextInt(9);
@@ -95,7 +93,6 @@ public class App {
             }
         }
     }
-
 
     private static void winCheck(Logger logger, byte winner) {
         if (winner == 1) {
@@ -125,7 +122,7 @@ public class App {
         }
     }
 
-    private static boolean isHaveSpace(char[] box) {
+    private static boolean doesHaveSpace(char[] box) {
         for (byte i = 0; i < 9; i++) {
             if (box[i] != 'X' && box[i] != 'O') {
                 return true;
